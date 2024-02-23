@@ -1,0 +1,9 @@
+
+.clickable {
+    cursor: pointer;
+}
+
+.scroll-list {
+    overflow: auto;
+    height: 200px;
+}

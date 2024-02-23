@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hello Bulma!</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="/static/hobbyfarm.css">
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <script src="/static/hobbyfarm.js"></script>
+</head>
+
+<body>
+    <section x-data="hobbyfarm()">
+        <h1 class="title">HobbyFarm</h1>
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column">
+                    <div class="box">
+                        <p class="subtitle">
+                            Projects
+                            <span class="mdi mdi-refresh clickable" x-on:click="fetchProjects()"></span>
+                        </p>
+                        <div class="scroll-list">
+                            <table class="table is-striped is-narrow is-hoverable is-fullwidth">
+                                <tbody>
+                                    <template x-for="project in projects">
+                                        <tr>
+                                            <td x-text="project"></td>
+                                            <td><span class="clickable mdi mdi-tray-plus"
+                                                    x-on:click="createJob(project)"></span></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="box">
+                        <p class="subtitle">
+                            Jobs
+                            <span class="mdi mdi-refresh clickable" x-on:click="fetchJobs()"></span>
+                        </p>
+                        <div class="scroll-list">
+                            <table class="table is-striped is-narrow is-hoverable is-fullwidth">
+                                <tbody>
+                                    <template x-for="job in jobs">
+                                        <tr x-bind:class="(selectedJob.id == job.id) ? 'is-selected' : ''">
+                                            <td class="clickable" x-text="job.id" x-on:click="viewJob(job)"></td>
+                                            <td x-text="job.project"></td>
+                                            <td x-text="job.start + '-' + job.end"></td>
+                                            <td
+                                                x-text="Math.round(100 * (1 - (job.queued.length / (job.end-job.start+1))))">
+                                            </td>
+                                            <td><span class="mdi mdi-delete-forever clickable"
+                                                    x-on:click="deleteJob(job.id)"></span></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="box">
+                        <p class="subtitle">Renders
+                            <span class="mdi mdi-refresh clickable" x-on:click="fetchRenders()"></span>
+                        </p>
+                        <div class="scroll-list">
+                            <table class="table is-striped is-narrow is-hoverable is-fullwidth">
+                                <tbody>
+                                    <template x-for="render in renders">
+                                        <tr x-bind:class="(render == selectedRender) ? 'is-selected' : ''">
+                                            <td class="clickable" x-text="prettyDate(render)" x-on:click="viewRender(render)"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <template x-if="selectedJob">
+            <div class="container">
+                <div class="columns">
+                    <div class="column">
+                        <div class="box">
+                            <table class="table is-fullwidth is-narrow">
+                                <tr>
+                                    <th>Job ID</th>
+                                    <td x-text="selectedJob.id"></td>
+                                </tr>
+                                <tr>
+                                    <th>Project</th>
+                                    <td x-text="selectedJob.project"></td>
+                                </tr>
+                                <tr>
+                                    <th>Frames</th>
+                                    <td x-text="selectedJob.start + '-' + selectedJob.end"></td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td x-text="selectedJob.status"></td>
+                                </tr>
+                                <tr>
+                                    <th>Queued</th>
+                                    <td x-text="selectedJob.queued.length"></td>
+                                </tr>
+                            </table>
+                            <img x-bind:src="previewUrl">
+                            <p x-text="previewUrl"></p>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="box">
+                            <table class="table is-narrow is-striped is-fullwidth">
+                                <tr>
+                                    <th>Frames</th>
+                                    <th>Worker</th>
+                                    <th>Started</th>
+                                    <th>Time</th>
+                                    <th>Preview</th>
+                                </tr>
+                                <template x-for="task in selectedJob.complete">
+                                    <tr class="has-background-success">
+                                        <td
+                                            x-text="task.frames.join(',')">
+                                        </td>
+                                        <td x-text="task.worker"></td>
+                                        <td x-text="prettyDate(task.time)"></td>
+                                        <td x-text="task.duration + 's'"></td>
+                                        <td>
+                                            <template x-for="i in task.frames">
+                                                <span class="clickable mdi mdi-image" x-on:click="previewUrl = '/renders/' + selectedJob.id + '/output-' + String(i).padStart(5, '0') + '.png'"></span>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template x-for="task in selectedJob.assigned">
+                                    <tr class="has-background-warning">
+                                        <td
+                                            x-text="task.frames.join(',')">
+                                        </td>
+                                        <td x-text="task.worker"></td>
+                                        <td x-text="task.time"></td>
+                                        <td x-text="task.completed"></td>
+                                        <td/>
+                                    </tr>
+                                </template>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </section>
+</body>
+
+</html>
