@@ -90,7 +90,7 @@ def run_worker(manager, frames, blender):
 if __name__=='__main__':
     import argparse
 
-    parser = argparse.ArgumentParser("HobbyFarm")
+    parser = argparse.ArgumentParser("HouseBlend")
 
     parser.add_argument('--blender', '-b', default='blender', help='Blender executable')
     parser.add_argument('--frames', '-f', type=int, default=1, help='Frames to render per task')

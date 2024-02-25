@@ -3,7 +3,7 @@ function prettyDate(d) {
     return d.substring(0, 10) + " " + d.substring(11,19)
 }
 
-function hobbyfarm() {
+function houseblend() {
     return {
         projects: [],
         jobs: [],
