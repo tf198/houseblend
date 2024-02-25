@@ -33,7 +33,7 @@ function houseblend() {
                 end: parseInt(parts[1]),
             }
             console.log("Creating job:", data);
-            const response = await fetch('/jobs', {
+            const response = await fetch('/api/jobs', {
                 method: 'PUT',
                 body: JSON.stringify(data),
                 headers: { 'Content-type': 'application/json; charset=UTF-8' }
@@ -48,7 +48,7 @@ function houseblend() {
 
         async deleteJob(id) {
             console.log("Deleting job:", id);
-            const response = await fetch('/jobs/' + id, {
+            const response = await fetch('/api/jobs/' + id, {
                 method: 'DELETE'
             });
             console.log(response);
@@ -56,7 +56,7 @@ function houseblend() {
         },
 
         async fetchJobs() {
-            this.jobs = await this.retrieve('/jobs');
+            this.jobs = await this.retrieve('/api/jobs');
             // update the currently selected job
             if (this.selectedJob) {
                 for(job of this.jobs) {
@@ -69,17 +69,17 @@ function houseblend() {
         },
 
         async fetchProjects() {
-            this.projects = await this.retrieve('/projects');
+            this.projects = await this.retrieve('/api/projects');
         },
 
         async fetchRenders() {
-            this.renders = await this.retrieve('/renders');
+            this.renders = await this.retrieve('/api/renders');
         },
 
         async viewRender(render) {
             this.selectedRender = render;
             this.previewUrl = "";
-            this.selectedJob = await this.retrieve('/renders/' + render + "/job.json");
+            this.selectedJob = await this.retrieve('/api/renders/' + render + "/job.json");
         },
 
         async viewJob(job) {

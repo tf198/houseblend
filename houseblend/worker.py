@@ -49,7 +49,7 @@ def run_worker(manager, frames, blender):
     with tempfile.TemporaryDirectory() as workdir:
 
         while True:
-            r = requests.get(f'http://{manager}/tasks/request?frames={frames}')
+            r = requests.get(f'http://{manager}/api/tasks/request?frames={frames}')
             
             if r.status_code != 200:
                 logger.debug("No tasks - waiting")
@@ -65,7 +65,7 @@ def run_worker(manager, frames, blender):
             blendfile = os.path.join(jobdir, f'{task['project']}.blend')
             if not os.path.isfile(blendfile):
                 logger.info("Requesting project file")
-                r = requests.get(f'http://{manager}/projects/{task['project']}')
+                r = requests.get(f'http://{manager}/api/projects/{task['project']}')
                 with open(blendfile, 'wb') as f:
                     f.write(r.content)
             task['blendfile'] = blendfile
@@ -77,12 +77,12 @@ def run_worker(manager, frames, blender):
 
                 for i in images:
                     n = os.path.basename(i)
-                    send_file(f"renders/{task['job_id']}/{n}", i)
+                    send_file(f"api/renders/{task['job_id']}/{n}", i)
 
-                send('tasks/complete', task)
+                send('api/tasks/complete', task)
             except Exception as e:
                 task['error'] = str(e)
-                send('tasks/failed', task)
+                send('api/tasks/failed', task)
                 raise
             time.sleep(2)
 

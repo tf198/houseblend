@@ -135,7 +135,7 @@
                                         <td x-text="task.duration + 's'"></td>
                                         <td>
                                             <template x-for="i in task.frames">
-                                                <span class="clickable mdi mdi-image" x-on:click="previewUrl = '/renders/' + selectedJob.id + '/output-' + String(i).padStart(5, '0') + '.png'"></span>
+                                                <span class="clickable mdi mdi-image" x-on:click="previewUrl = '/api/renders/' + selectedJob.id + '/output-' + String(i).padStart(5, '0') + '.png'"></span>
                                             </template>
                                         </td>
                                     </tr>
