@@ -37,7 +37,7 @@ def handle_render_task(task, api):
     logger.debug("handle_render_task: %r", task)
     
     # get the blendfile (if we dont already have it)
-    blendfile = os.path.join(task['workdir'], f'{task['project']}.blend')
+    blendfile = os.path.join(task['workdir'], f"{task['project']}.blend")
     if not os.path.isfile(blendfile):
         logger.info("Requesting project file")
         with open(blendfile, 'wb') as f:
