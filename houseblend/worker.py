@@ -30,6 +30,9 @@ class API(object):
             
     def get_file(self, uri, f):
         r = requests.get(f'{self.baseurl}/{uri}')
+        if r.status_code != 200:
+            logger.warning(r.text)
+            raise RuntimeError("Failed to download file")
         f.write(r.content)
 
 
@@ -65,7 +68,7 @@ def handle_render_task(task, api):
 
 
 
-def run_worker(manager, frames, blender):
+def run_worker(manager, port, frames, blender):
     
     uid = str(uuid4())
     logger.info("Worker UUID: %s", uid)
@@ -74,13 +77,13 @@ def run_worker(manager, frames, blender):
     subprocess.run([blender, '--version'], check=True)
 
     logger.info("Registering worker with %s", manager)
-    api = API(f'http://{manager}/api')
+    api = API(f'http://{manager}:{port}/api')
 
 
     with tempfile.TemporaryDirectory() as workdir:
 
         while True:
-            r = requests.get(f'http://{manager}/api/tasks/request?frames={frames}')
+            r = requests.get(f'http://{manager}:{port}/api/tasks/request?frames={frames}') # TODO: switch to API
             
             if r.status_code != 200:
                 logger.debug("No tasks - waiting")
@@ -115,7 +118,8 @@ def main():
     parser.add_argument('--frames', '-f', type=int, default=1, help='Frames to render per task')
 
     parser.add_argument('--loglevel', '-l', default='info', help='Logging level')
-    parser.add_argument('manager', nargs="?", default="localhost:5000", help='Manager to connect to')
+    parser.add_argument('--port', type=int, default=5000, help="Manager port")
+    parser.add_argument('manager', nargs="?", default="localhost", help='Manager to connect to')
 
     options = parser.parse_args()
 
