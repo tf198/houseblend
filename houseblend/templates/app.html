@@ -29,7 +29,7 @@
                                     <template x-for="project in projects">
                                         <tr>
                                             <td x-text="project"></td>
-                                            <td><span class="clickable mdi mdi-tray-plus"
+                                            <td><span class="clickable mdi mdi-video-box"
                                                     x-on:click="createJob(project)"></span></td>
                                         </tr>
                                     </template>
@@ -119,6 +119,7 @@
                         <div class="box">
                             <table class="table is-narrow is-striped is-fullwidth">
                                 <tr>
+                                    <th/>
                                     <th>Frames</th>
                                     <th>Worker</th>
                                     <th>Started</th>
@@ -126,7 +127,8 @@
                                     <th>Preview</th>
                                 </tr>
                                 <template x-for="task in selectedJob.complete">
-                                    <tr class="has-background-success">
+                                    <tr>
+                                        <td><i class="mdi mdi-check-circle has-text-primary"></i></td>
                                         <td
                                             x-text="task.frames.join(',')">
                                         </td>
@@ -141,7 +143,8 @@
                                     </tr>
                                 </template>
                                 <template x-for="task in selectedJob.assigned">
-                                    <tr class="has-background-warning">
+                                    <tr>
+                                        <td><i class="mdi mdi-play-circle has-text-info"></i></td>
                                         <td
                                             x-text="task.frames.join(',')">
                                         </td>
