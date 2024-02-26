@@ -41,13 +41,13 @@ def handle_render_task(task, api):
     if not os.path.isfile(blendfile):
         logger.info("Requesting project file")
         with open(blendfile, 'wb') as f:
-            api.get_file(f'projects/{task['project']}', f)
+            api.get_file(f"projects/{task['project']}", f)
     
     
     # spawn a blender process
     frames = ','.join([ str(x) for x in task['frames'] ])
     cmd = [task['blender'], '-b', blendfile,
-           '-o', f'{task["workdir"]}/output-#####.png',
+           '-o', f"{task['workdir']}/output-#####.png",
            '-f', frames,
            ]
     logger.debug(cmd)
