@@ -3,6 +3,7 @@ import os
 import json
 import glob
 from datetime import datetime
+import shutil
 
 def create_bp(config):
 
@@ -21,9 +22,7 @@ def create_bp(config):
         raise KeyError("No such job")
     
     def write_job(job):
-        projectdir = os.path.join(renderdir, job['id'])
-        os.makedirs(projectdir, exist_ok=True)
-        filename = os.path.join(projectdir, 'job.json')
+        filename = os.path.join(renderdir, job['id'], 'job.json')
         with open(filename, 'w') as f:
             json.dump(job, f)
 
@@ -40,10 +39,6 @@ def create_bp(config):
     def get_projects():
         return [ os.path.basename(x)[:-6] for x in glob.glob(os.path.join(basedir, "*.blend")) ]
     
-    @bp.get('/projects/<path:project>')
-    def get_project(project):
-       return send_from_directory(basedir, f'{project}.blend')
-
     # JOBS
     @bp.get('/jobs')
     def get_queued():
@@ -72,7 +67,11 @@ def create_bp(config):
             'assigned': {},
             'complete': {},
         }
+        projectdir = os.path.join(renderdir, job['id'])
+        os.makedirs(projectdir, exist_ok=True)
         write_job(job)
+
+        shutil.copy(f"{project}.blend", f"{projectdir}/{project}.blend")
 
         jobs.append(job)
         jobs.sort(key=lambda x: (x['priority'], x['id']))
@@ -94,7 +93,7 @@ def create_bp(config):
         result.sort(reverse=True)
         return result
 
-    @bp.get('/renders/<jobid>/images')
+    @bp.get('/renders/<jobid>')
     def job_file_list(jobid):
         try:
             job = find_job(jobid)

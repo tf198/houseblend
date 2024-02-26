@@ -41,7 +41,7 @@ def handle_render_task(task, api):
     if not os.path.isfile(blendfile):
         logger.info("Requesting project file")
         with open(blendfile, 'wb') as f:
-            api.get_file(f"projects/{task['project']}", f)
+            api.get_file(f"renders/{task['job_id']}/{task['project']}.blend", f)
     
     
     # spawn a blender process

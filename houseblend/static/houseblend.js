@@ -44,6 +44,8 @@ function houseblend() {
                 throw (message);
             }
             this.selectedJob = await response.json();
+            this.fetchRenders();
+            this.selectedRender = this.selectedJob.id;
             this.fetchJobs();
 
         },
