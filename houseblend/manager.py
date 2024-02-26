@@ -26,6 +26,9 @@ def create_app(test_config=None):
 
     return app
 
-if __name__ == '__main__':
+def run_app():
     app = create_app()
     app.run()
+
+if __name__ == '__main__':
+    run_app()

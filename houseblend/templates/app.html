@@ -14,7 +14,12 @@
 
 <body>
     <section x-data="houseblend()">
-        <h1 class="title"><span class="mdi mdi-coffee"></span>HouseBlend</h1>
+        <div class="container">
+            <h1 class="title">
+                <span class="mdi mdi-coffee-to-go"></span> HouseBlend
+                <span class="is-size-6">Simple home network render farm for Blender</span>
+            </h1>
+        </div>
         <div class="container">
             <div class="columns is-centered">
                 <div class="column">
@@ -29,7 +34,7 @@
                                     <template x-for="project in projects">
                                         <tr>
                                             <td x-text="project"></td>
-                                            <td><span class="clickable mdi mdi-video-box"
+                                            <td class="has-text-right"><span class="clickable mdi mdi-video-box"
                                                     x-on:click="createJob(project)"></span></td>
                                         </tr>
                                     </template>
@@ -112,7 +117,7 @@
                                 </tr>
                             </table>
                             <img x-bind:src="previewUrl">
-                            <p x-text="previewUrl"></p>
+                            <p class="is-size-7" x-text="previewUrl"></p>
                         </div>
                     </div>
                     <div class="column">

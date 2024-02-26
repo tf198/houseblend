@@ -106,7 +106,7 @@ def run_worker(manager, frames, blender):
             logger.info("Completed task %s, waiting for next..", task['job_id'])
 
 
-if __name__=='__main__':
+def main():
     import argparse
 
     parser = argparse.ArgumentParser("HouseBlend")
@@ -127,3 +127,6 @@ if __name__=='__main__':
 
     logger.debug(options)
     run_worker(**kwargs)
+
+if __name__ == '__main__':
+    main()

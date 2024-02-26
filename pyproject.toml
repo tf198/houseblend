@@ -1,0 +1,14 @@
+[project]
+name = "houseblend"
+version = "0.0.1"
+dependencies = [
+    "requests",
+    "flask"
+]
+
+[project.scripts]
+houseblend-manager = "houseblend.master:run_app"
+houseblend-worker = "houseblend.worker:main"
+
+[tool.setuptools]
+packages = ["houseblend"]
