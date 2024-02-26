@@ -76,7 +76,7 @@ def create_bp(config):
 
         jobs.append(job)
         jobs.sort(key=lambda x: (x['priority'], x['id']))
-        return Response('Job created', 201)
+        return Response(json.dumps(job), 201, mimetype="application/json")
 
     @bp.delete("/jobs/<jobid>")
     def delete_job(jobid):
@@ -108,7 +108,7 @@ def create_bp(config):
         return send_from_directory(folder, filename)
 
     @bp.put("/renders/<jobid>/<path:filename>")
-    def upload_result(jobid, filename):
+    def upload_render(jobid, filename):
         try:
             job = find_job(jobid)
         except KeyError:
@@ -143,7 +143,7 @@ def create_bp(config):
             job['assigned'][task_id] = task
             return task
         
-        return Response('No jobs available', 404)
+        return Response('No jobs available', 204)
 
     @bp.put('/tasks/complete')
     def task_completed():

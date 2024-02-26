@@ -43,7 +43,9 @@ function houseblend() {
                 alert(response.status + ": " + message);
                 throw (message);
             }
+            this.selectedJob = await response.json();
             this.fetchJobs();
+
         },
 
         async deleteJob(id) {

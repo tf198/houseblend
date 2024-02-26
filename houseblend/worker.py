@@ -9,20 +9,60 @@ import json
 import logging
 logger = logging.getLogger(__name__)
 
-def handle_task(task):
-    logger.info(task)
+class API(object):
+
+    def __init__(self, baseurl):
+        self.baseurl = baseurl
+
+    def send(self, uri, data):
+        body = json.dumps(data)
+        r = requests.put(f'{self.baseurl}/{uri}', data=body, headers={'Content-Type': 'application/json'})
+        if r.status_code not in [200, 201, 204]:
+            logger.warning(r.text)
+            raise RuntimeError(f"Failed to upload data to {uri}")
+        
+    def send_file(self, uri, filename):
+        with open(filename, 'rb') as f:
+            r = requests.put(f'{self.baseurl}/{uri}', data=f)
+            if r.status_code not in [200, 201, 204]:
+                logger.warning(r.text)
+                raise RuntimeError(f"Failed to upload file: {filename} to {uri}")
+            
+    def get_file(self, uri, f):
+        r = requests.get(f'{self.baseurl}/{uri}')
+        f.write(r.content)
+
+
+def handle_render_task(task, api):
+    logger.debug("handle_render_task: %r", task)
+    
+    # get the blendfile (if we dont already have it)
+    blendfile = os.path.join(task['workdir'], f'{task['project']}.blend')
+    if not os.path.isfile(blendfile):
+        logger.info("Requesting project file")
+        with open(blendfile, 'wb') as f:
+            api.get_file(f'projects/{task['project']}', f)
+    
+    
+    # spawn a blender process
     frames = ','.join([ str(x) for x in task['frames'] ])
-    cmd = [task['blender'], '-b', task['blendfile'],
+    cmd = [task['blender'], '-b', blendfile,
            '-o', f'{task["workdir"]}/output-#####.png',
            '-f', frames,
            ]
     logger.debug(cmd)
     subprocess.run(cmd, check=True)
-    results = [f"{task['workdir']}/output-{i:05d}.png" for i in task['frames'] ]
-    for result in results:
-        if not os.path.isfile(result):
-            raise RuntimeError(f"Failed to render {result}")
-    return results
+
+    # upload the results
+    logger.info("Uploading frames %r", task['frames'])
+    for i in task['frames']:
+        framename = f'output-{i:05d}.png'
+        filename = os.path.join(task['workdir'], framename)
+        if not os.path.isfile(filename):
+            raise RuntimeError(f"Failed to render frame {i}")
+        api.send_file(f"renders/{task['job_id']}/{framename}", filename)
+
+
 
 
 def run_worker(manager, frames, blender):
@@ -30,21 +70,12 @@ def run_worker(manager, frames, blender):
     uid = str(uuid4())
     logger.info("Worker UUID: %s", uid)
 
-    logger.info("Registering worker with %s", manager)
+    logger.info("Checking blender...")
+    subprocess.run([blender, '--version'], check=True)
 
-    def send(uri, data):
-        body = json.dumps(data)
-        r = requests.put(f'http://{manager}/{uri}', data=body, headers={'Content-Type': 'application/json'})
-        if r.status_code not in [200, 201, 204]:
-            logger.warning(r.text)
-            raise RuntimeError(f"Failed to upload data to {uri}")
-        
-    def send_file(uri, filename):
-        with open(filename, 'rb') as f:
-            r = requests.put(f'http://{manager}/{uri}', data=f)
-            if r.status_code not in [200, 201, 204]:
-                logger.warning(r.text)
-                raise RuntimeError(f"Failed to upload file: {filename} to {uri}")
+    logger.info("Registering worker with %s", manager)
+    api = API(f'http://{manager}/api')
+
 
     with tempfile.TemporaryDirectory() as workdir:
 
@@ -57,34 +88,22 @@ def run_worker(manager, frames, blender):
                 continue
 
             task = r.json()
-            logger.info(task)
+            logger.info("Received task: %r", task['job_id'])
 
             jobdir = os.path.join(workdir, task['job_id'])
             os.makedirs(jobdir, exist_ok=True)
-
-            blendfile = os.path.join(jobdir, f'{task['project']}.blend')
-            if not os.path.isfile(blendfile):
-                logger.info("Requesting project file")
-                r = requests.get(f'http://{manager}/api/projects/{task['project']}')
-                with open(blendfile, 'wb') as f:
-                    f.write(r.content)
-            task['blendfile'] = blendfile
             task['workdir'] = jobdir
             task['blender'] = blender
 
             try:
-                images = handle_task(task)
-
-                for i in images:
-                    n = os.path.basename(i)
-                    send_file(f"api/renders/{task['job_id']}/{n}", i)
-
-                send('api/tasks/complete', task)
+                handle_render_task(task, api)
+                api.send('tasks/complete', task)
             except Exception as e:
                 task['error'] = str(e)
-                send('api/tasks/failed', task)
-                raise
-            time.sleep(2)
+                api.send('tasks/failed', task)
+                raise # something wrong - don't keep trying
+            
+            logger.info("Completed task %s, waiting for next..", task['job_id'])
 
 
 if __name__=='__main__':
